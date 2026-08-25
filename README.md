@@ -1,189 +1,369 @@
-# FlowForge — AI-Assisted Deterministic Workflow Generation
+# FlowForge — Natural Language to Verified Workflow Compiler
 
-FlowForge is an **AI-assisted workflow generation, verification, visualization, repair, and execution platform** that converts natural-language requirements into structured and machine-verifiable workflows.
+FlowForge is an **AI-assisted workflow compiler** that converts natural-language process descriptions into structured, visual, verified, executable, and reusable workflows.
 
-The current project combines the **FlowForge v5 Understanding architecture** with the **Phase 2 dashboard and UI design system**.
+The project is built around the problem statement:
 
-The central idea behind FlowForge is:
+> **Natural Language to Verified Workflow Compiler**
 
-> **AI understands the workflow the user wants. Structured and deterministic systems control how that workflow is represented, verified, repaired, visualized, and executed.**
+The core idea is to combine the simplicity of a **ChatGPT-like conversational interface** with the power of an **n8n-style visual workflow environment**, while adding an important layer that traditional AI workflow generators often lack: **verification before execution**.
 
----
-
-## 🚀 Current Version
-
-### FlowForge v5 Understanding + Phase 2 UI
-
-This version combines two major parts of the project:
-
-**v5 Understanding Engine**
-
-* Natural-language workflow understanding
-* Structured workflow generation
-* Intermediate Representation (IR)
-* Workflow compiler
-* Semantic node connections
-* Deterministic verification
-* Workflow repair/regeneration
-* Workflow Studio
-* Execution architecture
-
-**Phase 2 Frontend**
-
-* Original Phase 2 dashboard design
-* Blue/teal theme
-* Sidebar navigation
-* Top navigation
-* Dashboard cards
-* Workflow status presentation
-* Light application layout
-* Consistent UI/UX across v5 pages
-
-The Phase 2 frontend was integrated **without changing the core working behavior of v5 Understanding**.
+A user should be able to describe a process in ordinary language, see the system convert that description into a workflow graph, inspect and edit the workflow visually, verify whether the generated workflow actually matches the original requirement, execute it safely, and save it for future use.
 
 ---
 
-# 🎯 What Problem Does FlowForge Solve?
+## Problem Statement
 
-AI can easily generate a workflow diagram.
+Building workflows today generally requires one of two approaches.
 
-The difficult part is ensuring that the generated workflow is actually **correct**.
+The first approach is to manually build automation logic using tools such as workflow editors, low-code platforms, or orchestration systems. These tools are powerful, but users still need to understand nodes, branches, conditions, data flow, dependencies, and execution order.
 
-Typical AI-generated workflow systems may create:
+The second approach is to use an AI model to generate automation logic from natural language. This is easier for the user, but introduces a serious reliability problem.
 
-* Unnecessary nodes
-* Missing required actions
-* Incorrect action ordering
-* Invalid conditions
-* Missing TRUE/FALSE branches
-* Orphan nodes
-* Unreachable nodes
-* Broken connections
-* Incorrect dependencies
-* Different workflows for the same requirement
-* Visual workflows that no longer match their internal representation
+An AI model can generate a workflow that **looks correct visually while being logically incorrect**.
 
-FlowForge approaches this differently.
+Typical failures include:
 
-Instead of allowing an LLM to directly control the workflow graph, FlowForge separates the system into multiple controlled stages.
+- Missing required actions
+- Extra or unnecessary nodes
+- Incorrect ordering
+- Invalid branching
+- Missing TRUE or FALSE paths
+- Undefined conditions
+- Orphan nodes
+- Unreachable nodes
+- Broken dependencies
+- Incorrect node relationships
+- Different graph structures for the same requirement
+- Visual edits that do not remain synchronized with the internal workflow definition
+- AI-generated workflows that are executed without being properly verified
+
+FlowForge addresses this by treating natural-language workflow generation as a **compiler problem**, not only a diagram-generation problem.
+
+The system first understands the requirement, converts it into a structured workflow representation, compiles it into a graph, verifies that graph, repairs or regenerates invalid workflows when possible, and only then allows the workflow to move toward execution.
 
 ---
 
-# 🧠 Core Architecture
+# Reference Idea
+
+FlowForge takes inspiration from two familiar interaction models.
+
+## ChatGPT-Like Interaction
+
+The user should not need to know how to manually construct every node.
+
+Instead, the user can describe the required process naturally.
+
+For example:
 
 ```text
-Natural Language Requirement
-            │
-            ▼
-┌──────────────────────────────┐
-│      Understanding Layer     │
-│                              │
-│ • Understand intent          │
-│ • Detect required actions    │
-│ • Detect conditions          │
-│ • Detect ordering            │
-│ • Detect dependencies        │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│     Structured Workflow      │
-│                              │
-│ • Nodes                      │
-│ • Semantic connections       │
-│ • Conditions                 │
-│ • Branches                   │
-│ • Dependencies               │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│ Intermediate Representation  │
-│             (IR)             │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│          Compiler            │
-│                              │
-│ IR → Workflow representation │
-│ IR → Visual representation   │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│         Verification         │
-│                              │
-│ • Structural checks          │
-│ • Semantic checks            │
-│ • Requirement checks         │
-│ • Connection checks          │
-└──────────────┬───────────────┘
-               │
-          ┌────┴────┐
-          │ Valid ? │
-          └────┬────┘
-          YES  │  NO
-          │    │
-          │    ▼
-          │  Repair
-          │    │
-          │    ▼
-          │ Re-Verify
-          │    │
-          └────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│       Workflow Studio        │
-│                              │
-│ Visual representation of     │
-│ actual workflow structure    │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│          Execution           │
-│                              │
-│ Execute verified workflow    │
-└──────────────────────────────┘
+When a support ticket is received, classify its severity.
+
+If the severity is critical, escalate it to the support lead.
+
+Otherwise assign it to the normal support queue.
+
+Save the result.
+```
+
+The AI understanding layer interprets the requirement and determines:
+
+- The trigger
+- Required actions
+- Conditions
+- TRUE and FALSE branches
+- Ordering
+- Dependencies
+- Outputs
+- Required workflow completion behavior
+
+This gives FlowForge the simplicity of a conversational AI interface.
+
+## n8n-Style Workflow Environment
+
+After understanding the requirement, FlowForge represents the process visually as connected workflow nodes.
+
+For example:
+
+```text
+Receive Ticket
+      |
+      v
+Classify Severity
+      |
+      v
+Is Severity Critical?
+     / \
+ TRUE   FALSE
+  |       |
+  v       v
+Escalate  Normal Queue
+     \     /
+      \   /
+       v v
+     Save Result
+```
+
+The user can inspect the generated flow visually, similar to modern workflow automation platforms.
+
+However, in FlowForge the graph is not merely a drawing.
+
+Every node and every connection is part of the actual workflow definition.
+
+---
+
+# Core Idea
+
+FlowForge combines:
+
+```text
+ChatGPT-like natural-language input
+                +
+n8n-style visual workflow environment
+                +
+Structured workflow compiler
+                +
+AI-assisted verification
+                +
+Deterministic validation
+                +
+Workflow regeneration / repair
+                +
+Execution
+                +
+Workflow saving and reuse
+```
+
+The complete concept can be represented as:
+
+```text
+Natural Language
+       |
+       v
+AI Understanding
+       |
+       v
+Structured Workflow Plan
+       |
+       v
+Workflow IR
+       |
+       v
+Compiler
+       |
+       v
+Visual Workflow
+       |
+       v
+Verification
+   +---+---+
+   |       |
+ VALID   INVALID
+   |       |
+   |       v
+   |    Regenerate
+   |       |
+   |       v
+   |    Re-Verify
+   |       |
+   +-------+
+       |
+       v
+Execution
+       |
+       v
+Save / Reuse Workflow
 ```
 
 ---
 
-# 💡 Fundamental Design Principle
+# Main Objectives
 
-FlowForge does **not** treat a workflow as only a flowchart.
+FlowForge is designed to achieve the following goals:
 
-A workflow is a structured graph containing:
-
-```text
-Nodes
-+
-Semantic Connections
-+
-Conditions
-+
-Dependencies
-+
-Execution Rules
-```
-
-The diagram displayed in Workflow Studio is therefore a **visual representation of the real workflow structure**.
+1. Convert natural-language requirements into structured workflows.
+2. Reduce the need for users to manually create automation graphs.
+3. Preserve the meaning and order of the original requirement.
+4. Prevent unnecessary node generation.
+5. Use semantic workflow connections rather than decorative graph edges.
+6. Detect structurally incorrect workflows.
+7. Detect workflows that do not match the original requirement.
+8. Automatically regenerate rejected workflows when possible.
+9. Keep the visual workflow synchronized with the underlying workflow representation.
+10. Execute only workflows that have passed the required validation stages.
+11. Allow workflows to be stored, reopened, inspected, and reused.
+12. Support both local and online AI providers through a controlled planner interface.
 
 ---
 
-# 🔗 Semantic Connections
+# System Architecture
 
-One of the important concepts in the current architecture is that connections between nodes have meaning.
-
-A connection is not simply:
+FlowForge separates AI understanding from deterministic workflow behavior.
 
 ```text
-Node A ───────── Node B
++------------------------------------------------------+
+|                 NATURAL LANGUAGE                     |
+|          User describes required workflow            |
++---------------------------+--------------------------+
+                            |
+                            v
++------------------------------------------------------+
+|                UNDERSTANDING LAYER                   |
+|                                                      |
+|  Intent • Actions • Conditions • Order • Dependencies|
++---------------------------+--------------------------+
+                            |
+                            v
++------------------------------------------------------+
+|              STRUCTURED WORKFLOW PLAN                |
+|                                                      |
+|       Required nodes, branches and semantics         |
++---------------------------+--------------------------+
+                            |
+                            v
++------------------------------------------------------+
+|              INTERMEDIATE REPRESENTATION             |
+|                        IR                            |
++---------------------------+--------------------------+
+                            |
+                            v
++------------------------------------------------------+
+|                     COMPILER                         |
+|                                                      |
+|       IR -> typed nodes -> semantic graph            |
++---------------------------+--------------------------+
+                            |
+                            v
++------------------------------------------------------+
+|                WORKFLOW STUDIO                       |
+|                                                      |
+|            Visual representation of graph            |
++---------------------------+--------------------------+
+                            |
+                            v
++------------------------------------------------------+
+|                  VERIFICATION                        |
+|                                                      |
+| Structural + semantic + requirement-level validation |
++---------------------------+--------------------------+
+                            |
+                  +---------+---------+
+                  |                   |
+                VALID              INVALID
+                  |                   |
+                  |                   v
+                  |          Fresh regeneration
+                  |                   |
+                  |                   v
+                  |              Re-verify
+                  |                   |
+                  +---------+---------+
+                            |
+                            v
++------------------------------------------------------+
+|                     EXECUTION                        |
+|                                                      |
+|      Run the accepted workflow using graph rules     |
++---------------------------+--------------------------+
+                            |
+                            v
++------------------------------------------------------+
+|               WORKFLOW LIBRARY                      |
+|                                                      |
+|       Save, reopen, inspect and reuse workflows      |
++------------------------------------------------------+
 ```
 
-Instead, it can represent:
+---
+
+# Natural-Language Compiler
+
+The compiler workflow starts from a user requirement instead of a manually constructed graph.
+
+The user enters natural language in the compiler interface.
+
+The input stage supports:
+
+- Free-form workflow descriptions
+- Example prompts
+- Voice input through browser speech recognition when supported
+- AI provider selection
+- Connection testing
+- AI planning status
+- Compilation progress
+
+The planner interprets the natural-language requirement and produces a structured workflow representation.
+
+The model is not allowed to directly control execution.
+
+Its role is to understand the requirement and propose a compiler-ready workflow structure.
+
+---
+
+# AI Provider Support
+
+The current compiler supports selectable AI providers.
+
+The interface includes support for:
+
+- **LM Studio** for a locally hosted model
+- **NVIDIA-hosted AI provider** for online inference
+
+The system includes a provider connection test so users can check whether the selected AI backend is available before generating a workflow.
+
+This keeps the workflow compiler flexible while preserving the same structured workflow contract regardless of the selected model provider.
+
+---
+
+# Intermediate Representation — Workflow IR
+
+Natural-language output is not sent directly to the visual editor.
+
+FlowForge uses a structured **Workflow Intermediate Representation (IR)**.
+
+The IR acts as the contract between:
+
+```text
+AI Understanding
+      |
+      v
+Workflow Compiler
+      |
+      v
+Verification
+      |
+      v
+Studio
+      |
+      v
+Execution
+```
+
+The IR represents concepts such as:
+
+- Trigger nodes
+- Action nodes
+- Conditions
+- Approvals
+- Input/output operations
+- Branches
+- Joins
+- Dependencies
+- Semantic connections
+- Outcome paths
+- Workflow metadata
+
+Using an IR reduces the risk of the visual editor and AI output becoming two independent sources of truth.
+
+---
+
+# Semantic Workflow Connections
+
+A critical design rule in FlowForge is that workflow connections carry meaning.
+
+An edge is not just a visual line.
+
+A connection may represent:
 
 ```text
 NEXT
@@ -198,570 +378,684 @@ JOIN
 For example:
 
 ```text
-                 ┌── TRUE ──→ Escalate Ticket
-                 │
-Receive → Classify → Is Critical?
-                 │
-                 └── FALSE ─→ Normal Queue
+                 TRUE
+                  |
+                  v
+            Escalate Ticket
+                 ^
+                 |
+Receive -> Classify -> Critical?
+                 |
+                 v
+             Normal Queue
+                 |
+                FALSE
 ```
 
-The system therefore understands not only **which nodes are connected**, but also **why they are connected**.
+The compiler, verifier, Studio, and execution engine can therefore reason about the relationship between nodes.
 
-This information can then be used by:
-
-* The compiler
-* Verification engine
-* Repair system
-* Workflow Studio
-* Execution engine
+This makes the graph part of the actual program.
 
 ---
 
-# 🧠 Understanding Layer
+# Workflow Studio
 
-The Understanding Layer converts natural-language requirements into structured workflow intent.
+The Workflow Studio provides the visual workflow environment.
 
-Example:
+It is designed to provide the usability of modern low-code workflow tools while remaining connected to FlowForge's compiler architecture.
 
-```text
-When a support ticket arrives, classify its severity.
+The Studio can represent:
 
-If the severity is critical, escalate it to the support lead.
+- Workflow nodes
+- Connections
+- Conditions
+- Branches
+- Dependencies
+- Execution order
+- Node configuration
+- Workflow structure
 
-Otherwise assign it to the normal support queue.
-```
+The visual editor should never become an independent drawing layer.
 
-The system should identify:
+The core principle is:
 
-### Trigger
+> **What the user sees in the Studio must represent the actual workflow that the compiler, verifier, and executor understand.**
 
-```text
-Support ticket received
-```
-
-### Required Action
-
-```text
-Classify severity
-```
-
-### Condition
-
-```text
-severity == critical
-```
-
-### TRUE Branch
-
-```text
-Escalate to support lead
-```
-
-### FALSE Branch
-
-```text
-Assign to normal support queue
-```
-
-The Understanding Layer therefore focuses on **understanding the user's intended workflow**, rather than directly drawing arbitrary nodes.
+Any structural editing of the workflow must therefore remain synchronized with the underlying workflow model.
 
 ---
 
-# 🧩 Intermediate Representation — IR
+# Verification Stage
 
-FlowForge uses an **Intermediate Representation (IR)** as the structured representation of a workflow.
+Verification is one of the most important differences between FlowForge and a simple AI workflow generator.
 
-Conceptually:
+Generating a graph does not automatically mean the graph is correct.
 
-```text
-Natural Language
-       ↓
-Understanding
-       ↓
-Structured Intent
-       ↓
-IR
-       ↓
-Compiler
-       ↓
-Workflow
-```
-
-The IR represents workflow concepts such as:
-
-```text
-Trigger
-Action
-Condition
-Approval
-I/O
-Branch
-Join
-Dependencies
-Connections
-Outcomes
-```
-
-This creates a boundary between AI understanding and the actual workflow implementation.
-
----
-
-# ⚙️ Compiler
-
-The compiler converts the structured workflow/IR into the representation required by FlowForge.
-
-The compiler is responsible for preserving:
-
-* Node identity
-* Node type
-* Node order
-* Semantic connections
-* Conditions
-* Branch outcomes
-* Dependencies
-* Workflow structure
-
-The compiler should **not invent business logic that was not present in the understood requirement**.
-
----
-
-# 🛡️ Verification Engine
-
-Generation alone is not considered sufficient.
-
-Every workflow can be checked by the verification system.
-
-The verifier analyzes both the structure of the workflow and whether it represents the original requirement correctly.
+Before a workflow is accepted, FlowForge can examine it using multiple validation layers.
 
 ## Structural Verification
 
-The system can detect issues such as:
+Structural rules can detect problems such as:
 
-```text
-Orphan nodes
-Unreachable nodes
-Missing connections
-Invalid graph structures
-Accidental cycles
-Broken workflow paths
-```
+- Orphan nodes
+- Unreachable nodes
+- Missing connections
+- Missing branches
+- Invalid cycles
+- Broken graph topology
+- Invalid outcome connections
+- Incorrect node structure
 
 ## Condition Verification
 
-Conditions can be checked for:
+Condition-related validation can detect:
 
-```text
-Missing TRUE branch
-Missing FALSE branch
-Duplicate TRUE branches
-Duplicate FALSE branches
-Undefined expressions
-Invalid branch placement
-Unsupported condition structures
-```
+- Missing TRUE branch
+- Missing FALSE branch
+- Duplicate TRUE or FALSE branches
+- Undefined conditions
+- Invalid branch configuration
+- Unsupported condition behavior
 
 ## Requirement Verification
 
-The verifier can identify:
+The verifier also compares the generated workflow against the original natural-language requirement.
 
-```text
-Missing required actions
-Incorrect action ordering
-Missing dependencies
-Incorrect workflow paths
-Workflow behavior inconsistent with the requirement
-```
+It can detect situations such as:
+
+- Required action missing from graph
+- Action placed in the wrong order
+- Required dependency not represented
+- Workflow behavior inconsistent with original prompt
+- Generated topology that does not satisfy the requested process
 
 ## Semantic Verification
 
-Because connections contain meaning, verification can reason about the relationship between nodes rather than only their visual position.
+Because edges have meaning, verification can inspect semantic relationships rather than only checking whether nodes are connected.
 
 ---
 
-# 🔧 Verification + Automatic Repair
+# AI Verification + Deterministic Verification
 
-Verification should not simply say:
+FlowForge uses AI where semantic reasoning is useful, but deterministic rules remain responsible for enforcing workflow correctness.
 
-```text
-ERROR: Missing required action
-```
-
-and stop.
-
-The current architecture is designed around a verification and repair cycle:
+The verifier therefore follows the principle:
 
 ```text
-Generate
-   │
-   ▼
-Compile
-   │
-   ▼
-Verify
-   │
-   ▼
-Valid?
- ┌─┴─┐
-YES  NO
- │    │
- │    ▼
- │  Repair
- │    │
- │    ▼
- │ Recompile
- │    │
- │    ▼
- │ Re-verify
- │    │
- └────┘
-   │
-   ▼
-Ready
+AI reasoning
+     +
+Deterministic structural rules
+     =
+Verified workflow decision
 ```
 
-Repair should use:
+A model cannot simply declare a graph valid if deterministic rules show that the graph is broken.
 
-1. Original user requirement
-2. Existing workflow structure
-3. Current nodes
-4. Current semantic connections
-5. Verification errors
+Deterministic validation can override an optimistic AI verdict.
 
-This is important because the system should fix the incorrect part of a workflow **without unnecessarily regenerating unrelated parts**.
+This creates a stronger verification boundary between generation and execution.
 
 ---
 
-# 🎯 Deterministic Workflow Generation
+# Verification Verdicts
 
-A major objective of FlowForge is reducing unnecessary variation in AI-generated workflows.
+The verification layer supports clear workflow outcomes.
 
-For example, if the requirement is:
-
-```text
-Receive Request
-      ↓
-Validate Request
-      ↓
-Process Request
-      ↓
-Send Response
-```
-
-the system should not arbitrarily generate:
+Conceptually, a workflow can be classified as:
 
 ```text
-Receive Request
-      ↓
-Analyze Request
-      ↓
-Prepare Request
-      ↓
-Validate Request
-      ↓
-Review Request
-      ↓
-Process Request
-      ↓
-Validate Processing
-      ↓
-Send Response
+RIGHT
+WRONG
+NEEDS_INPUT
 ```
 
-unless those steps are actually required.
+### RIGHT
 
-This reduces:
+The workflow satisfies the required validation gates and can proceed.
 
-* Workflow hallucination
-* Unnecessary nodes
-* Random restructuring
-* Regeneration drift
+### WRONG
+
+The generated workflow contains structural or semantic problems and should not be accepted in its current form.
+
+### NEEDS_INPUT
+
+The original requirement contains unresolved information that must be clarified before the system can safely create a complete workflow.
 
 ---
 
-# 🧠 Flow Diagram as Workflow Memory
+# Workflow Regeneration
 
-The workflow structure itself provides important context for later operations.
+When a workflow is rejected, FlowForge does not rely only on displaying an error message.
 
-When verification or repair occurs, the system can refer to:
+The system can use verification evidence to generate a replacement workflow.
 
-```text
-Existing nodes
-Existing connections
-Branch relationships
-Execution order
-Dependencies
-Condition paths
-```
+An important design principle is:
 
-rather than reconstructing the entire workflow from scratch every time.
+> **Do not keep patching a fundamentally incorrect graph.**
 
-This helps preserve the intended workflow during repair and modification.
-
----
-
-# 🖥️ Workflow Studio
-
-Workflow Studio provides the visual interface for inspecting the generated workflow.
-
-It displays:
-
-* Nodes
-* Connections
-* Conditions
-* Branches
-* Execution paths
-* Workflow relationships
-
-A major architectural requirement is:
-
-> **The Studio must represent the actual workflow structure rather than maintaining an independent visual-only version of the workflow.**
-
-The workflow model remains the source of truth.
-
----
-
-# 🔄 Studio Synchronization
-
-Visual editing must remain synchronized with the underlying workflow representation.
+When the verifier rejects the topology, the planner can generate a fresh complete workflow from the original requirement.
 
 Conceptually:
 
 ```text
-Workflow Model
-      │
-      ▼
-     IR
-      │
-      ▼
-Compiler
-      │
-      ▼
-Workflow Studio
-```
-
-When workflow structure changes, those changes must remain meaningful to:
-
-```text
+Original Requirement
+        |
+        v
+Generated Workflow
+        |
+        v
 Verification
-Compiler
-Repair
-Execution
+        |
+     INVALID
+        |
+        v
+Discard failed topology
+        |
+        v
+Generate complete replacement
+        |
+        v
+Deterministic validation
+        |
+        v
+Re-Verification
 ```
 
-The Studio should therefore not become a disconnected visual editor.
+This reduces graph corruption caused by repeatedly applying small repairs to an already incorrect structure.
 
 ---
 
-# ▶️ Execution Layer
+# Deterministic Acceptance
 
-Only a workflow that satisfies the required validation rules should proceed toward execution.
+A regenerated workflow is not automatically trusted simply because an AI model produced it.
 
-The execution system follows the verified graph and respects:
+The replacement must still satisfy deterministic acceptance rules.
 
-* Node order
-* Semantic connections
-* Conditions
-* Branch outcomes
-* Dependencies
-* Execution state
+This helps prevent a repair cycle where one invalid AI response is replaced by another invalid AI response.
 
-The architecture intentionally separates AI understanding from runtime execution.
+The objective is:
 
 ```text
-AI Understanding
-       ↓
-Structured Workflow
-       ↓
+Generate
+   |
+Validate
+   |
+Verify
+   |
+Accept
+```
+
+rather than:
+
+```text
+Generate
+   |
+Assume correct
+   |
+Execute
+```
+
+---
+
+# Workflow Execution
+
+Execution is treated as a separate stage after workflow construction and verification.
+
+The execution layer follows the accepted workflow graph.
+
+It respects:
+
+- Node ordering
+- Conditions
+- Semantic branches
+- Dependencies
+- Execution state
+- Workflow outcomes
+
+The architecture intentionally prevents the AI model from directly controlling runtime behavior.
+
+The AI proposes the workflow.
+
+The structured workflow controls execution.
+
+---
+
+# Execution Feedback
+
+Execution results can also become useful evidence for verification.
+
+If execution exposes a failure, that information can be supplied back to the verification process.
+
+Conceptually:
+
+```text
+Verified Workflow
+       |
+       v
+Execution
+       |
+       v
+Failure Evidence
+       |
+       v
 Verification
-       ↓
-Execution
+       |
+       v
+Regeneration / Correction
 ```
 
-The AI model does not directly control runtime behavior.
+This creates a path for improving a workflow based on real execution behavior while still keeping verification in control.
 
 ---
 
-# 🎨 Phase 2 UI Integration
+# Workflow Saving and Library
 
-The latest version uses the **Phase 2 FlowForge visual design system throughout the v5 application**.
+Generated workflows are intended to be reusable rather than temporary.
 
-The UI migration includes:
+FlowForge includes a workflow library concept for storing workflow definitions.
 
-* Phase 2 dashboard style
-* Light application background
-* Blue/teal navigation
-* Teal gradient actions
-* White cards
-* Consistent borders
-* Dashboard metrics
-* Workflow status cards
-* Diagnostics presentation
-* Consistent typography
-* Sidebar navigation
-* Top navigation
+This enables users to:
 
-The purpose of this migration was purely UI/UX improvement.
+- Save workflows
+- Reopen previous workflows
+- Review workflow structure
+- Reuse verified workflows
+- Continue editing existing workflows
+- Keep workflow configurations available for later execution
 
-The underlying v5 workflow architecture remains unchanged.
+The workflow library forms the persistence layer for reusable automation designs.
 
 ---
 
-# 📊 Dashboard
+# Application Modules
 
-The dashboard acts as the primary overview for FlowForge.
-
-It provides visibility into areas such as:
-
-```text
-Workflow activity
-Recent workflows
-Workflow status
-Verification status
-Diagnostics
-Generation activity
-Execution state
-```
-
-The dashboard follows the Phase 2 visual language while remaining connected to the v5 application structure.
-
----
-
-# 🧭 Application Modules
-
-The current interface contains the major FlowForge areas.
+The current application is organized into several major modules.
 
 ## Dashboard
 
-Overview of workflows and system activity.
+The dashboard provides an overview of the FlowForge environment.
+
+It is designed to surface information such as:
+
+- Workflow activity
+- Recent workflows
+- Workflow status
+- Verification state
+- Diagnostics
+- Execution activity
+- System status
+
+## Compiler
+
+The Compiler is the natural-language entry point.
+
+Users describe what they want the workflow to do and the system converts it into a structured workflow.
 
 ## Workflow Studio
 
-Visual workflow generation and inspection environment.
+The Studio shows the compiled workflow visually and allows the graph to be inspected and configured.
 
 ## Verification
 
-Workflow validation, diagnostics, and verification results.
+The Verification module analyzes the workflow for structural, semantic, and requirement-level correctness.
+
+## Executions
+
+The execution area represents the runtime stage for accepted workflows.
 
 ## Workflow Library
 
-Access to generated or stored workflows.
+The Library stores workflows so that they can be reopened and reused.
 
 ## Integrations
 
-External integration management.
+The Integrations section represents connections to external systems and services used by workflow nodes.
 
 ## Policies
 
-Workflow rules and constraints.
+Policies provide a place for workflow rules and constraints that govern acceptable workflow behavior.
 
 ## Settings
 
-Application configuration.
+Settings contain system and application configuration.
 
 ---
 
-# 🏗️ System Separation
+# End-to-End User Experience
 
-FlowForge maintains separation between major responsibilities:
+The intended user journey is simple.
+
+## Step 1 — Describe
+
+The user explains the workflow in natural language.
 
 ```text
-┌──────────────────────────┐
-│          UI / UX         │
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│      Understanding       │
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│     Workflow Model       │
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│            IR            │
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│         Compiler         │
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│       Verification       │
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│          Repair          │
-└────────────┬─────────────┘
-             │
-┌────────────▼─────────────┐
-│        Execution         │
-└──────────────────────────┘
+Every day check each student's attendance.
+
+If the student is present, mark present.
+
+Otherwise mark absent.
+
+Save the attendance record.
 ```
 
-This separation allows the UI to evolve without changing workflow semantics.
+## Step 2 — Understand
 
----
-
-# 🛠️ Technology Stack
-
-The current project uses a modern TypeScript/JavaScript application stack including:
+The AI planner identifies:
 
 ```text
-React
-TypeScript
-Vite
-Node.js / npm
-Component-based frontend architecture
-Graph-based workflow representation
-Structured workflow verification
+Trigger
+  -> Daily schedule
+
+Action
+  -> Check attendance
+
+Condition
+  -> Student present?
+
+TRUE
+  -> Mark present
+
+FALSE
+  -> Mark absent
+
+Final action
+  -> Save attendance
 ```
+
+## Step 3 — Compile
+
+The structured interpretation is converted into Workflow IR and then into a graph.
+
+## Step 4 — Visualize
+
+The workflow is displayed in the Workflow Studio.
+
+## Step 5 — Verify
+
+FlowForge checks whether the graph is structurally valid and whether it matches the original requirement.
+
+## Step 6 — Regenerate if Required
+
+If the generated graph is rejected, a new complete candidate can be generated and validated.
+
+## Step 7 — Execute
+
+After acceptance, the workflow can proceed to execution.
+
+## Step 8 — Save
+
+The workflow can be stored in the Library for later inspection and reuse.
 
 ---
 
-# 📁 Conceptual Project Structure
+# Why Verification Matters
+
+Consider this requirement:
 
 ```text
-FlowForge
-│
-├── UI
-│   ├── Dashboard
-│   ├── Sidebar
-│   ├── Topbar
-│   ├── Workflow Studio
-│   └── Application Pages
-│
-├── Understanding
-│   └── Natural-language interpretation
-│
-├── Workflow Engine
-│   ├── Nodes
-│   ├── Semantic Connections
-│   ├── Conditions
-│   ├── Branches
-│   └── Dependencies
-│
-├── IR
-│   └── Structured workflow representation
-│
-├── Compiler
-│   └── IR → Workflow / Visual representation
-│
-├── Verification
-│   ├── Structural validation
-│   ├── Semantic validation
-│   ├── Requirement validation
-│   └── Connection validation
-│
-├── Repair
-│   └── Verification-guided workflow correction
-│
-└── Execution
-    └── Verified workflow execution
+Receive an incident.
+
+Classify its severity.
+
+If it is critical, escalate it.
+
+Otherwise continue normal processing.
+```
+
+A normal generative system might output:
+
+```text
+Receive Incident
+      |
+      v
+Is Critical?
+      |
+      v
+Escalate
+```
+
+The graph looks reasonable but is wrong because the required **Classify Severity** action is missing and the FALSE branch is absent.
+
+FlowForge aims to detect these errors before execution.
+
+A correct representation should resemble:
+
+```text
+Receive Incident
+      |
+      v
+Classify Severity
+      |
+      v
+Is Critical?
+   /      \
+TRUE      FALSE
+ |          |
+ v          v
+Escalate   Continue
+```
+
+This illustrates why the project is a **verified workflow compiler**, not merely an AI diagram generator.
+
+---
+
+# Preventing Unnecessary Nodes
+
+Another goal is to reduce AI-generated workflow expansion.
+
+If the requirement says:
+
+```text
+Receive Request
+Validate Request
+Process Request
+Send Response
+```
+
+the compiler should preserve that intent.
+
+It should not invent unrelated stages such as:
+
+```text
+Receive Request
+Analyze Request
+Prepare Request
+Review Request
+Validate Request
+Process Request
+Validate Processing
+Generate Report
+Send Response
+```
+
+unless those steps are required by the user's request or by an explicit workflow rule.
+
+This improves:
+
+- Predictability
+- Repeatability
+- Explainability
+- Workflow simplicity
+- Verification reliability
+
+---
+
+# Workflow Graph as Source of Truth
+
+The workflow graph carries the structure required by the system.
+
+That means the graph should capture:
+
+```text
+What happens
+When it happens
+What comes next
+Why one node connects to another
+Which branch is TRUE
+Which branch is FALSE
+What dependencies exist
+Where execution can continue
+Where execution ends
+```
+
+The visual workflow, compiler representation, verifier, and execution engine should therefore describe the same process.
+
+---
+
+# Separation of Responsibilities
+
+FlowForge intentionally separates major responsibilities.
+
+```text
+Natural-language interaction
+          |
+          v
+AI understanding
+          |
+          v
+Workflow IR
+          |
+          v
+Compiler
+          |
+          v
+Graph
+          |
+          v
+Verification
+          |
+          v
+Execution
+          |
+          v
+Persistence
+```
+
+This separation is important because each layer has a different purpose.
+
+### AI Understanding
+
+Interprets human requirements.
+
+### IR
+
+Stores structured workflow intent.
+
+### Compiler
+
+Transforms structured intent into an executable graph representation.
+
+### Studio
+
+Provides visual interaction with the graph.
+
+### Verification
+
+Determines whether the graph is valid and faithful to the requirement.
+
+### Execution
+
+Runs the accepted workflow.
+
+### Library
+
+Stores workflows for reuse.
+
+---
+
+# Reliability Principle
+
+The project follows one central reliability rule:
+
+> **AI can propose workflow logic, but deterministic systems must decide whether that workflow is structurally acceptable.**
+
+This is intended to reduce dependence on model randomness.
+
+---
+
+# Technology Stack
+
+The current project uses:
+
+- **React 19**
+- **TypeScript**
+- **Vite**
+- **TanStack Router**
+- **TanStack Start**
+- **XYFlow / React Flow**
+- **Tailwind CSS**
+- **Framer Motion**
+- **Radix UI components**
+- **Zod**
+- **Node.js / npm**
+
+The workflow system also contains custom modules for:
+
+- Workflow IR
+- IR normalization
+- Requirement planning
+- Node contracts
+- Structural rules
+- Workflow engine
+- Workflow state
+- Workflow library
+- Workflow verification
+- AI provider handling
+- AI workflow planning
+- Workflow test generation
+
+---
+
+# Project Structure
+
+A simplified conceptual structure is:
+
+```text
+src/
+|
++-- components/
+|   |
+|   +-- layout/
+|   +-- ui/
+|   +-- workflow/
+|
++-- lib/
+|   |
+|   +-- workflow-ir
+|   +-- workflow-ir-normalizer
+|   +-- workflow-engine
+|   +-- workflow-structural-rules
+|   +-- workflow-store
+|   +-- workflow-library
+|   +-- requirement-plan
+|   +-- requirement-contract
+|   +-- node-contracts
+|
++-- routes/
+|   |
+|   +-- dashboard
+|   +-- compiler
+|   +-- studio
+|   +-- verification
+|   +-- executions
+|   +-- library
+|   +-- integrations
+|   +-- policies
+|   +-- settings
+|
++-- server-functions/
+    |
+    +-- workflow-planner
+    +-- workflow-verifier
+    +-- workflow-test-generator
+    +-- llm-provider
+    +-- llm-health
 ```
 
 ---
 
-# 📦 Installation
+# Installation
 
 Clone the repository:
 
@@ -769,13 +1063,13 @@ Clone the repository:
 git clone https://github.com/AakshayDhoke-lang/CH26-P03-MINIONS.git
 ```
 
-Enter the repository:
+Move into the project directory:
 
 ```bash
 cd CH26-P03-MINIONS
 ```
 
-Install dependencies:
+Install the required dependencies:
 
 ```bash
 npm install
@@ -783,175 +1077,206 @@ npm install
 
 ---
 
-# ▶️ Running FlowForge
+# Run the Project
 
-Start the development environment:
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Open the local address shown in the terminal.
+After the server starts, open the **Local URL displayed by Vite in the terminal**.
 
-For example:
-
-```text
-http://localhost:8080/
-```
-
-The actual port may differ depending on the development environment.
+No fixed port is documented here because the development server may choose a different available port depending on the machine and environment.
 
 ---
 
-# 🧪 Regression Validation
+# Available Development Commands
 
-During the Phase 2 UI migration, the v5 workflow behavior was kept unchanged.
+Run the application:
 
-The available regression checks after the migration passed:
-
-```text
-v5 Understanding Tests      12 / 12 PASS
-Workflow Engine Tests       24 / 24 PASS
------------------------------------------
-Total                       36 / 36 PASS
+```bash
+npm run dev
 ```
 
-This verifies that the UI migration did not intentionally modify the tested v5 workflow behavior.
+Build the project:
+
+```bash
+npm run build
+```
+
+Run the workflow-engine regression tests:
+
+```bash
+npm run test:engine
+```
+
+Run the workflow-understanding regression tests:
+
+```bash
+npm run test:v5
+```
+
+Run linting:
+
+```bash
+npm run lint
+```
 
 ---
 
-# ⚠️ Development Rules
+# Current Validation Status
 
-When developing FlowForge, maintain the separation between:
+The current implementation includes regression tests for the workflow understanding and workflow engine layers.
+
+The latest validated project state passed:
 
 ```text
-UI
-Understanding
-Workflow Model
-IR
-Compiler
-Verification
-Repair
+Workflow Understanding Tests    12 / 12 PASS
+Workflow Engine Tests           24 / 24 PASS
+--------------------------------------------
+Total                           36 / 36 PASS
+```
+
+These tests help ensure that UI changes do not silently alter the tested workflow behavior.
+
+---
+
+# Development Principles
+
+When extending FlowForge, the following principles should be maintained.
+
+## 1. Do Not Treat Connections as Decorative
+
+Connections must preserve semantic meaning.
+
+## 2. Keep Studio and Workflow Model Synchronized
+
+A visual change that affects workflow structure must also affect the underlying graph representation.
+
+## 3. Do Not Let AI Bypass Validation
+
+AI output must be normalized, compiled, and verified.
+
+## 4. Preserve the Original Requirement
+
+Verification and regeneration must continue to refer to the original user requirement.
+
+## 5. Prefer Complete Regeneration for Rejected Topologies
+
+If the workflow structure is fundamentally wrong, generate a new complete candidate rather than repeatedly applying fragile patches.
+
+## 6. Verify Again After Regeneration
+
+A repaired or regenerated workflow must pass validation before acceptance.
+
+## 7. Keep Execution Separate from Generation
+
+The generation model should not directly control runtime execution.
+
+## 8. Make Saved Workflows Reusable
+
+A verified workflow should be capable of being reopened and reused without requiring complete regeneration every time.
+
+---
+
+# Example End-to-End Architecture
+
+```text
+USER
+ |
+ | Natural-language workflow requirement
+ v
++----------------------+
+| Chat-style Compiler  |
++----------+-----------+
+           |
+           v
++----------------------+
+| AI Understanding     |
+| Planner              |
++----------+-----------+
+           |
+           v
++----------------------+
+| Workflow IR          |
++----------+-----------+
+           |
+           v
++----------------------+
+| Deterministic        |
+| Compiler             |
++----------+-----------+
+           |
+           v
++----------------------+
+| Workflow Studio      |
+| Visual Graph         |
++----------+-----------+
+           |
+           v
++----------------------+
+| Verification Engine  |
+| AI + Deterministic   |
++----------+-----------+
+           |
+       +---+---+
+       |       |
+     VALID   WRONG
+       |       |
+       |       v
+       |   Regenerate
+       |       |
+       |       v
+       |   Re-Verify
+       |       |
+       +---+---+
+           |
+           v
++----------------------+
+| Execution            |
++----------+-----------+
+           |
+           v
++----------------------+
+| Save to Library      |
++----------------------+
+```
+
+---
+
+# Project Vision
+
+FlowForge aims to make workflow automation accessible through natural language without sacrificing correctness.
+
+The goal is not simply:
+
+> **"Ask AI to draw a workflow."**
+
+The goal is:
+
+> **"Describe a process naturally, compile it into a structured workflow, verify that the graph actually represents the process, execute it safely, and save it for reuse."**
+
+The project therefore combines the strongest parts of conversational AI and visual automation environments while introducing a verification layer between generation and execution.
+
+In short:
+
+```text
+ChatGPT-like interaction
+        +
+n8n-like visual workflows
+        +
+Compiler architecture
+        +
+AI reasoning
+        +
+Deterministic verification
+        +
 Execution
-```
-
-### UI Changes
-
-UI/UX modifications should not silently modify workflow semantics.
-
-### Compiler Changes
-
-Compiler changes should preserve the meaning of the structured workflow.
-
-### Studio Changes
-
-Visual changes to workflow structure must remain synchronized with the actual workflow representation.
-
-### Verification Changes
-
-Verification should validate both graph correctness and requirement consistency.
-
-### Repair Changes
-
-Repair should preserve correct parts of the existing workflow whenever possible.
-
-### Execution Changes
-
-Execution should operate on validated workflow structures rather than directly on AI-generated text.
-
----
-
-# 🔮 Project Direction
-
-The long-term FlowForge pipeline is:
-
-```text
-Natural Language
-        │
-        ▼
-Understanding
-        │
-        ▼
-Structured Workflow
-        │
-        ▼
-Intermediate Representation
-        │
-        ▼
-Compiler
-        │
-        ▼
-Deterministic Verification
-        │
-        ├──── Invalid ────→ Repair
-        │                     │
-        │                     └──→ Re-Verify
-        │
-        ▼
-Workflow Studio
-        │
-        ▼
-Execution
-        │
-        ▼
-Execution Results
-```
-
-The objective is to build a workflow-generation system that is:
-
-* **Predictable**
-* **Explainable**
-* **Verifiable**
-* **Repairable**
-* **Visually editable**
-* **Semantically consistent**
-* **Execution-safe**
-* **Less dependent on LLM randomness**
-
----
-
-# 🏁 Project Vision
-
-FlowForge is not intended to be simply an:
-
-> **AI Flowchart Generator**
-
-The goal is to create an:
-
-> **AI-assisted deterministic workflow engineering platform.**
-
-AI is used where understanding and reasoning are valuable.
-
-Deterministic components are used where correctness, consistency, validation, and execution matter.
-
-```text
-             AI
-              │
-              ▼
-        UNDERSTANDING
-              │
-              ▼
-     STRUCTURED WORKFLOW
-              │
-              ▼
-        DETERMINISTIC
-          COMPILER
-              │
-              ▼
-        VERIFICATION
-              │
-        ┌─────┴─────┐
-        │           │
-      VALID       INVALID
-        │           │
-        │         REPAIR
-        │           │
-        └─────┬─────┘
-              ▼
-       WORKFLOW STUDIO
-              │
-              ▼
-          EXECUTION
+        +
+Workflow persistence
+        =
+FlowForge
 ```
 
 ---
@@ -960,6 +1285,6 @@ Deterministic components are used where correctness, consistency, validation, an
 
 **CH26-P03-MINIONS**
 
-This repository contains the current FlowForge development version based on:
+Problem statement:
 
-**FlowForge v5 Understanding + Phase 2 UI**
+**Natural Language to Verified Workflow Compiler**
