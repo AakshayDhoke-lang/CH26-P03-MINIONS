@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Flow Weaver
 
 Build an Eye-Catching Frontend for an AI Natural Language → Verified Workflow Compiler
@@ -1438,3 +1439,6 @@ Certified persistence: workflows are saved only after the full mandatory executi
 - Added explicit edge deletion using Delete/Backspace and double-click.
 - Certification/save behavior remains fail-closed: all mandatory tests must pass before persistence/export.
 - See `AUDIT_v7.18.md` for the design and predicted model behavior audit.
+=======
+# CH26-P03-MINIONS
+>>>>>>> 2278559c0a3af3cc1a38f89d82fdfbf92cfe3b90
