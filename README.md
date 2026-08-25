@@ -796,7 +796,7 @@ Open the local address shown in the terminal.
 For example:
 
 ```text
-http://localhost:5173
+http://localhost:8080/
 ```
 
 The actual port may differ depending on the development environment.
